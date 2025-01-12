@@ -1,1 +1,44 @@
-# cloud-config
+#cloud-config
+
+variables:
+  config_url: https://raw.githubusercontent.com/Vonor/kairos/refs/heads/main
+  cloud_config: cloud-config.yaml
+install:
+  auto: true
+  grub_options:
+    extra_cmdline: config_url=${Variables.config_url}/${variables.cloud_config}
+  device: auto
+  poweroff: false
+  reboot: true
+
+hostname: metal-{{ trunc 4 .MachineID }}
+stages:
+  initramfs:
+    - files:
+        - path: /var/lib/connman/default.config
+          permissions: 0644
+          content: |
+            [service_eth0]
+            Type = ethernet
+            IPv4 = 192.168.2.10/255.255.255.0/192.168.2.1
+            IPv6 = off
+            Nameservers = 192.168.2.1
+
+users:
+  - name: kairos
+    groups:
+      - admin
+    ssh_authorized_keys:
+      - github:vonor
+
+k3s:
+  enabled: true
+  args:
+  - --disable=traefik,servicelb
+
+cluster:
+  cluster_token: randomstring
+  control_plane_host: 192.168.2.10
+  role: init,worker
+  config: |
+    node-name: metal-{{ trunc 4 .MachineID }}
