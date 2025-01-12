@@ -1,12 +1,9 @@
 #cloud-config
 
-variables:
-  config_url: https://raw.githubusercontent.com/Vonor/kairos/refs/heads/main
-  cloud_config: cloud-config.yaml
 install:
   auto: true
   grub_options:
-    extra_cmdline: config_url=${Variables.config_url}/${variables.cloud_config}
+    extra_cmdline: config_url=https://raw.githubusercontent.com/Vonor/kairos/refs/heads/main/cloud-config.yaml
   device: auto
   poweroff: false
   reboot: true
@@ -27,7 +24,7 @@ k3s:
 
 cluster:
   cluster_token: randomstring
-  control_plane_host: 192.168.2.10
+  control_plane_host: metal-{{ trunc 4 .MachineID }}
   role: init,worker
   config: |
     node-name: metal-{{ trunc 4 .MachineID }}
